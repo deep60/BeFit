@@ -11,7 +11,7 @@ import SwiftUI
 struct BeFitApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            BeFitTabView()
         }
     }
 }
