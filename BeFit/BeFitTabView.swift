@@ -26,8 +26,8 @@ struct BeFitTabView: View {
                     Text("Home")
                 })
             
-            DataView()
-                .tag("Data")
+            ChartView()
+                .tag("Charts")
                 .tabItem({
                     Image(systemName: "chart.line.uptrend.xyaxis")
                     
