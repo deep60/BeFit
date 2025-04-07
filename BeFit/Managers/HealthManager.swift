@@ -76,11 +76,19 @@ class HealthManager {
         let calories = HKQuantityType(.activeEnergyBurned)
         let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
         let query = HKStatisticsQuery(quantityType: calories, quantitySamplePredicate: predicate) { _, results, error in
-            guard let quantity = results?.sumQuantity(), error == nil else {
-                completion(.failure(NSError()))
+            if let error = error {
+                completion(.failure(error))
                 return
             }
-            
+            guard let quantity = results?.sumQuantity() else {
+                let customError = NSError(
+                    domain: "com.yourapp.healthkit",
+                    code: 1002,
+                    userInfo: [NSLocalizedDescriptionKey: "Failed to retrieve calorie data."]
+                )
+                completion(.failure(customError))
+                return
+            }
             let calorieCount = quantity.doubleValue(for: .kilocalorie())
             completion(.success(calorieCount))
         }
@@ -93,8 +101,18 @@ class HealthManager {
         let exercise = HKQuantityType(.appleExerciseTime)
         let predicate = HKQuery.predicateForSamples(withStart: .startOfDay, end: Date())
         let query = HKStatisticsQuery(quantityType: exercise, quantitySamplePredicate: predicate) { _, results, error in
-            guard let quantity = results?.sumQuantity(), error == nil else {
-                completion(.failure(NSError()))
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            guard let quantity = results?.sumQuantity() else {
+                let customError = NSError(
+                    domain: "com.yourapp.healthkit",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: "Failed to retrieve exercise data."]
+                )
+                completion(.failure(customError))
                 return
             }
             
@@ -208,5 +226,49 @@ class HealthManager {
             completion(.success(workoutArray))
         }
         healthStore.execute(query)
+    }
+}
+
+// MARK: ChartView Data
+
+extension HealthManager {
+    
+    struct YearChartDataResult {
+        let ytd: [MonthlyStepModel]
+        let oneYear: [MonthlyStepModel]
+    }
+    
+    func fetchYTDAndOneYearChartData(completion: @escaping (Result<YearChartDataResult, Error>) -> Void) {
+        let steps = HKQuantityType(.stepCount)
+        let calendar = Calendar.current
+        
+        var oneYearMonths = [MonthlyStepModel]()
+        var ytdMonths = [MonthlyStepModel]()
+        for i in 0...11 {
+            let month = calendar.date(byAdding: .month, value: -i, to: Date()) ?? Date()
+            let (startOfMonth, endOfMonth) = month.fetchMonthStartAndEndDate()
+            let predicate = HKQuery.predicateForSamples(withStart: startOfMonth, end: endOfMonth)
+            let query = HKStatisticsQuery(quantityType: steps, quantitySamplePredicate: predicate) { _, results, error in
+                guard let steps = results?.sumQuantity()?.doubleValue(for: .count()), error == nil else {
+                    completion(.failure(URLError(.badURL)))
+                    return
+                }
+                
+                if i == 0 {
+                    oneYearMonths.append(MonthlyStepModel(date: month, count: Int(steps)))
+                    ytdMonths.append(MonthlyStepModel(date: month, count: Int(steps)))
+                } else {
+                    oneYearMonths.append(MonthlyStepModel(date: month, count: Int(steps)))
+                    if calendar.component(.year, from: Date()) == calendar.component(.year, from: month) {
+                        ytdMonths.append(MonthlyStepModel(date: month, count: Int(steps)))
+                    }
+                }
+                
+                if i == 11 {
+                    completion(.success(YearChartDataResult(ytd: ytdMonths, oneYear: oneYearMonths)))
+                }
+            }
+            healthStore.execute(query)
+        }
     }
 }

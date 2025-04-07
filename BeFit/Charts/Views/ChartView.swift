@@ -34,7 +34,7 @@ struct ChartView: View {
                     VStack {
                         ChartDataView(average: viewModel.oneMonthAverage, total: viewModel.oneMonthTotal)
                         Chart {
-                            ForEach(viewModel.mockChartOneMonthData) { data in
+                            ForEach(viewModel.mockOneMonthData) { data in
                                 BarMark(x: .value(data.date.formatted(), data.date, unit: .day), y: .value("Steps", data.count))
                             }
                         }
@@ -43,7 +43,7 @@ struct ChartView: View {
                     VStack {
                         ChartDataView(average: viewModel.threeMonthAverage, total: viewModel.threeMonthTotal)
                         Chart {
-                            ForEach(viewModel.mockChartThreeMonthData) { data in
+                            ForEach(viewModel.mockThreeMonthData) { data in
                                 BarMark(x: .value(data.date.formatted(), data.date, unit: .day), y: .value("Steps", data.count))
                             }
                         }
@@ -52,7 +52,7 @@ struct ChartView: View {
                     VStack {
                         ChartDataView(average: viewModel.ytdAverage, total: viewModel.ytdTotal)
                         Chart {
-                            ForEach(viewModel.mockChartYTData) { data in
+                            ForEach(viewModel.ytdChartData) { data in
                                 BarMark(x: .value(data.date.formatted(), data.date, unit: .month), y: .value("Steps", data.count))
                             }
                         }
@@ -61,7 +61,7 @@ struct ChartView: View {
                     VStack {
                         ChartDataView(average: viewModel.oneYearAverage, total: viewModel.oneYearTotal)
                         Chart {
-                            ForEach(viewModel.mockChartYTData) { data in
+                            ForEach(viewModel.oneYearChartData) { data in
                                 BarMark(x: .value(data.date.formatted(), data.date, unit: .month), y: .value("Steps", data.count))
                             }
                         }
